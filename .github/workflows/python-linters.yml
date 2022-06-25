@@ -1,0 +1,78 @@
+name: Python linters (flake8 and mypy)
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'lab-grader/**'
+      - 'discord-client-bot/**'
+      - 'telegram-client-bot/**'
+      - 'telegram-admin-bot/**'
+  pull_request:
+      branches:
+        - main
+      paths:
+        - 'lab-grader/**'
+        - 'discord-client-bot/**'
+        - 'telegram-client-bot/**'
+        - 'telegram-admin-bot/**'
+        
+
+jobs:
+  check-flake8:
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        python-version: [3.10]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r lab-grader/requirements.txt
+          pip install -r discord-client-bot/requirements.txt
+          pip install -r telegram-client-bot/requirements.txt
+          pip install -r telegram-admin-bot/requirements.txt
+          pip install -r requirements.dev.txt
+      - name: Run flake8
+        run: |
+          python3 -m flake8 backend --config=./.flake8
+  check-mypy:
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        python-version: [3.10]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r lab-grader/requirements.txt
+          pip install -r discord-client-bot/requirements.txt
+          pip install -r telegram-client-bot/requirements.txt
+          pip install -r telegram-admin-bot/requirements.txt
+          pip install -r requirements.dev.txt
+      - name: Run mypy
+        run: |
+          python3 -m mypy backend --config=./mypy.ini
