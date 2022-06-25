@@ -47,7 +47,10 @@ jobs:
           pip install -r requirements.dev.txt
       - name: Run flake8
         run: |
-          python3 -m flake8 backend --config=./.flake8
+          python3 -m flake8 lab-grader --config=./.flake8
+          python3 -m flake8 discord-client-bot --config=./.flake8
+          python3 -m flake8 telegram-client-bot --config=./.flake8
+          python3 -m flake8 telegram-admin-bot --config=./.flake8
   check-mypy:
     runs-on: ubuntu-20.04
     strategy:
@@ -75,4 +78,7 @@ jobs:
           pip install -r requirements.dev.txt
       - name: Run mypy
         run: |
-          python3 -m mypy backend --config=./mypy.ini
+          python3 -m mypy lab-grader --config=./mypy.ini
+          python3 -m mypy discord-client-bot --config=./mypy.ini
+          python3 -m mypy telegram-client-bot --config=./mypy.ini
+          python3 -m mypy telegram-admin-bot --config=./mypy.ini
