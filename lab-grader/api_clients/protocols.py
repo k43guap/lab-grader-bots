@@ -8,3 +8,8 @@ from apps.grader.models import GoogleSheetInfo
 class CourseSheetManagerProtocol(Protocol):
     async def find_student(self, fullname: str, group: str, google_sheet_info: GoogleSheetInfo) -> Optional[Student]:
         raise NotImplementedError
+
+
+class GithubManagerProtocol(Protocol):
+    async def get_user(self, username: str) -> Optional[dict]:
+        raise NotImplementedError
