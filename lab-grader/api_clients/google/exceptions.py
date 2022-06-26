@@ -1,0 +1,2 @@
+class GoogleSheetSessionIsNotInitialized(Exception):
+    pass
