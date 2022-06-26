@@ -1,0 +1,13 @@
+version: "3.8"
+
+services:
+  lab-grader:
+    container_name: lab-grader
+    build: ./lab-grader
+    command: uvicorn main:app --host 0.0.0.0 --reload
+    volumes:
+      - ./lab-grader:/app
+    ports:
+      - 8000:8000
+    working_dir: /app
+    restart: on-failure
