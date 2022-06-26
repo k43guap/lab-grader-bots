@@ -1,6 +1,8 @@
 import re
 from typing import Optional
 
+from aiogoogle.excs import HTTPError
+
 from api_clients.google.google_sheets_client import GoogleSheetClient
 from apps.authorization.models import Student
 from apps.grader.models import GoogleSheetInfo
@@ -11,10 +13,14 @@ class CourseSheetManager:
         self._google_sheets_client = google_sheets_client
 
     async def find_student(self, fullname: str, group: str, google_sheet_info: GoogleSheetInfo) -> Optional[Student]:
-        group_sheets = await self._google_sheets_client.get_sheets_values_by_column(
-            google_sheet_info.spreadsheet_id,
-            sheet_titles=[group],
-        )
+        try:
+            group_sheets = await self._google_sheets_client.get_sheets_values_by_column(
+                google_sheet_info.spreadsheet_id,
+                sheet_titles=[group],
+            )
+        except HTTPError:
+            return None
+
         group_sheets = group_sheets['valueRanges']
 
         for group_sheet in group_sheets:
