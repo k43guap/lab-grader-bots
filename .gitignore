@@ -122,3 +122,9 @@ venv.bak/
 # mypy
 .mypy_cache/
 .dmypy.json
+
+# Google Key
+google_key.json
+
+# Courses folder
+lab-grader/courses
