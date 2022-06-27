@@ -10,3 +10,6 @@ flake8-import-order==0.18.1
 flake8-mutable==1.2.0
 flake8-polyfill==1.0.2
 flake8-print==5.0.0
+
+types-aiofiles==0.8.8
+types-PyYAML==6.0.9

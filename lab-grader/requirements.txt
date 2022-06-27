@@ -3,5 +3,3 @@ aiogoogle==4.2.0
 uvicorn==0.18.1
 gidgethub==5.2.0
 PyYAML==6.0
-types-aiofiles==0.8.8
-types-PyYAML==6.0.9

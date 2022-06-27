@@ -24,6 +24,7 @@ class LaboratoryWork(BaseModel):
     penalty_max: int = Field(alias='penalty-max')
     taskid_shift: int = Field(alias='taskid-shift', default=0)
     ignore_task_id: bool = Field(alias='ignore-task-id', default=False)
+    jobs: list[str] | dict = Field(alias='ci', default_factory=list)
 
     class Config:
         allow_population_by_field_name = True
