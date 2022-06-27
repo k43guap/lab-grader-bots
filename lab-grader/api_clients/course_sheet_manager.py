@@ -1,11 +1,12 @@
 import re
+from datetime import datetime
 from typing import Optional
 
 from aiogoogle.excs import HTTPError
 
 from api_clients.google.google_sheets_client import GoogleSheetClient
 from apps.authorization.models import Student
-from apps.grader.models import GoogleSheetInfo
+from apps.grader.models import GoogleSheetInfo, LaboratoryWork
 
 
 class CourseSheetManager:
@@ -39,3 +40,15 @@ class CourseSheetManager:
                 return Student(variant_number=task_id, fullname=fullname, group=group, github_username=github_username)
 
         return None
+
+    async def get_deadline(self, group: str, laboratory_work: LaboratoryWork, spreadsheet_id: str) -> datetime:
+        group_sheets = await self._google_sheets_client.get_sheets_values_by_column(
+            spreadsheet_id,
+            sheet_titles=[group],
+        )
+
+        sheet_columns = group_sheets['valueRanges'][0]['values']
+        for column in sheet_columns:
+            if laboratory_work.short_name in column:
+                return datetime.strptime(column[0], '%d.%m.%Y')
+        raise ValueError(laboratory_work.short_name)  # this code is unreachable
