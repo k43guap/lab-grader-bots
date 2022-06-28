@@ -1,12 +1,16 @@
 from asyncio import Protocol
+from datetime import datetime
 from typing import Optional
 
 from apps.authorization.models import Student
-from apps.grader.models import GithubOrganization, GoogleSheetInfo
+from apps.grader.models import GithubOrganization, GoogleSheetInfo, LaboratoryWork
 
 
 class CourseSheetManagerProtocol(Protocol):
     async def find_student(self, fullname: str, group: str, google_sheet_info: GoogleSheetInfo) -> Optional[Student]:
+        raise NotImplementedError
+
+    async def get_deadline(self, group: str, laboratory_work: LaboratoryWork, spreadsheet_id: str) -> datetime:
         raise NotImplementedError
 
 
