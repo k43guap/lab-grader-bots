@@ -20,9 +20,17 @@ class GithubSettings(BaseSettings):
     GITHUB_OAUTH_TOKEN: str = get_env("GITHUB_OAUTH_TOKEN", required=True)
 
 
-class Settings(GoogleSettings, GithubSettings):
+class GithubBuildLogSettings(BaseSettings):
+    PREFIX_LOG_TASK_ID: str = "TASKID is"
+    PREFIX_LOG_SCORE: str = "Score is"
+    PREFIX_LOG_POINTS: str = "Points"
+    PREFIX_LOG_REDUCTION: str = "Grading reduced by"
+
+
+class Settings(GoogleSettings, GithubSettings, GithubBuildLogSettings):
     COURSES_CONFIG_DIRECTORY: str = get_env("COURSES_CONFIG_DIRECTORY", default='courses')
     RATE_LIMIT = "1/5min"
+    DEFAULT_CI_JOBS: list = ["Autograding", "test", "build"]
 
 
 @lru_cache
