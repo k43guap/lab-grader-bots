@@ -15,7 +15,7 @@ router = APIRouter()
     response_model=Student,
     status_code=200,
     response_description="Student successfully logged in",
-    tags=["Authorization"],
+    operation_id="login",
 )
 async def login(
         non_authorized_student: NonAuthorizedStudent,

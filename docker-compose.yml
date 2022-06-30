@@ -13,3 +13,22 @@ services:
     restart: on-failure
     env_file:
       - lab-grader/.env
+    networks:
+      service-network:
+
+  telegram-client-bot:
+    container_name: telegram-client-bot
+    build: ./telegram-client-bot
+    command: python main.py
+    volumes:
+      - ./telegram-client-bot:/app
+    working_dir: /app
+    restart: on-failure
+    env_file:
+      - telegram-client-bot/.env
+    networks:
+      service-network:
+
+networks:
+  service-network:
+    driver: bridge
