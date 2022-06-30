@@ -38,5 +38,10 @@ class Course(BaseModel):
     google_sheet_info: GoogleSheetInfo = Field(default_factory=dict, alias='google')
     laboratories: dict[str, LaboratoryWork] = Field(default_factory=dict, alias='labs')
 
+    @property
+    def all_course_names(self) -> list[str]:
+        course_names = [self.name.lower()] + [name.lower() for name in self.alt_names]
+        return course_names
+
     class Config:
         allow_population_by_field_name = True

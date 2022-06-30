@@ -63,3 +63,13 @@ class GoogleSheetClient:
             majorDimension='ROWS',
         ))
         return dict(response)
+
+    async def update_cell(self, spreadsheet_id: str, cell_id: str, value: str) -> None:
+        await self._aiogoogle.as_service_account(self._spreadsheets.values.update(
+            spreadsheetId=spreadsheet_id,
+            range=cell_id,
+            valueInputOption='USER_ENTERED',
+            json={
+                'values': [[value]],
+            },
+        ))
