@@ -4,6 +4,7 @@ from typing import Optional
 
 from apps.authorization.models import Student
 from apps.grader.models import GithubOrganization, GoogleSheetInfo, LaboratoryWork
+from config import Settings
 
 
 class CourseSheetManagerProtocol(Protocol):
@@ -11,6 +12,18 @@ class CourseSheetManagerProtocol(Protocol):
         raise NotImplementedError
 
     async def get_deadline(self, group: str, laboratory_work: LaboratoryWork, spreadsheet_id: str) -> datetime:
+        raise NotImplementedError
+
+    async def update_github_username(
+            self,
+            student: Student,
+            new_github_username: str,
+            spreadsheet_id: str,
+            settings: Settings,
+    ) -> None:
+        raise NotImplementedError
+
+    async def get_github_usernames(self, spreadsheet_id: str, settings: Settings) -> list[str]:
         raise NotImplementedError
 
 

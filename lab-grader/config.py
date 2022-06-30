@@ -14,6 +14,8 @@ def get_env(name: str, required: bool = False, default: T = None) -> T:
 
 class GoogleSettings(BaseSettings):
     GOOGLE_KEY_FILE_PATH: str = get_env("GOOGLE_KEY_FILE_PATH", default='google_key.json')
+    STUDENT_FULLNAME_COLUMN: str = 'Ф.И.О.'
+    GITHUB_COLUMN: str = 'GitHub'
 
 
 class GithubSettings(BaseSettings):
