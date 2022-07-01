@@ -50,5 +50,6 @@ async def login(
         course.google_sheet_info.spreadsheet_id,
         settings,
     )
+    student_from_sheet.github_username = non_authorized_student.github_username
 
     return student_from_sheet

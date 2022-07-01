@@ -3,7 +3,10 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.types import Message
 
 from api_clients import lab_grader_client
-from core import dispatcher, States
+from core import bot, dispatcher, States
+from core.models import AuthorizedStudent
+from core.utils import parse_unexpected_exception
+from lab_grader_client.exceptions import UnexpectedResponse
 from lab_grader_client.models import NonAuthorizedStudent
 
 
@@ -28,7 +31,7 @@ async def start_login(message: Message) -> None:
 async def process_lastname(message: Message, state: FSMContext) -> None:
     async with state.proxy() as data:
         data['lastname'] = message.text
-    await message.reply("Введите ваше имя:")
+    await message.answer("Введите ваше имя:")
     await LoginForm.firstname.set()
 
 
@@ -36,7 +39,7 @@ async def process_lastname(message: Message, state: FSMContext) -> None:
 async def process_firstname(message: Message, state: FSMContext) -> None:
     async with state.proxy() as data:
         data['firstname'] = message.text
-    await message.reply("Введите ваше отчество:")
+    await message.answer("Введите ваше отчество:")
     await LoginForm.patronymic.set()
 
 
@@ -44,7 +47,7 @@ async def process_firstname(message: Message, state: FSMContext) -> None:
 async def process_patronymic(message: Message, state: FSMContext) -> None:
     async with state.proxy() as data:
         data['patronymic'] = message.text
-    await message.reply("Введите вашу группу:")
+    await message.answer("Введите вашу группу:")
     await LoginForm.group.set()
 
 
@@ -52,7 +55,7 @@ async def process_patronymic(message: Message, state: FSMContext) -> None:
 async def process_group(message: Message, state: FSMContext) -> None:
     async with state.proxy() as data:
         data['group'] = message.text
-    await message.reply("Введите ваш никнейм в Github:")
+    await message.answer("Введите ваш никнейм в Github:")
     await LoginForm.github_username.set()
 
 
@@ -60,7 +63,7 @@ async def process_group(message: Message, state: FSMContext) -> None:
 async def process_github_username(message: Message, state: FSMContext) -> None:
     async with state.proxy() as data:
         data['github_username'] = message.text
-    await message.reply("Введите ваш email:")
+    await message.answer("Введите ваш email:")
     await LoginForm.email.set()
 
 
@@ -68,7 +71,7 @@ async def process_github_username(message: Message, state: FSMContext) -> None:
 async def process_email(message: Message, state: FSMContext) -> None:
     async with state.proxy() as data:
         data['email'] = message.text
-    await message.reply("Введите название курса:")
+    await message.answer("Введите название курса:")
     await LoginForm.course_name.set()
 
 
@@ -77,6 +80,24 @@ async def process_course_name(message: Message, state: FSMContext) -> None:
     async with state.proxy() as data:
         data['course_name'] = message.text
         data['fullname'] = f"{data['lastname']} {data['firstname']} {data['patronymic']}"
-        result = await lab_grader_client.authorization_api.login(NonAuthorizedStudent(**data))
-        await message.reply(result)
-        await States.main_menu.set()
+        student = NonAuthorizedStudent(**data)
+        try:
+            student_response = await lab_grader_client.authorization_api.login(student)
+            await message.answer('Вы успешно зашли!')
+
+            authorized_student = AuthorizedStudent(
+                fullname=student_response.fullname,
+                github_username=student_response.github_username,
+                group=student_response.group,
+                courses=[data['course_name']],
+            )
+            auth_message = await message.answer(authorized_student.to_message())
+            message_id = auth_message['message_id']
+            await bot.pin_chat_message(message.chat.id, message_id)
+
+            await States.main_menu.set()
+        except UnexpectedResponse as e:
+            await message.answer('Произошла ошибка!')
+            await message.answer('\n'.join(parse_unexpected_exception(e)))
+            await States.auth.set()
+            await start_login(message)
