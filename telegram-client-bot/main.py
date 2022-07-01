@@ -3,20 +3,20 @@ from aiogram.types import Message
 from aiogram.utils import executor
 
 from core import States
+from core.keyboards import keyboard
 from states import dispatcher
-from states.auth_state.handlers import start_login
 
 
 @dispatcher.message_handler(commands=['start'])
 async def process_start_command(message: Message) -> None:
+    await message.answer('Это бот для студентов ГУАП и нам нужны ваши данные', reply_markup=keyboard.auth_menu)
     await States.auth.set()
-    await start_login(message)
 
 
 @dispatcher.message_handler(state=None)
 async def set_default_state(message: Message) -> None:
     await States.auth.set()
-    await start_login(message)  # fixme
+    await process_start_command(message)
 
 
 async def shutdown(dp: Dispatcher) -> None:
