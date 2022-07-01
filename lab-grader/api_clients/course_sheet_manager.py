@@ -111,10 +111,14 @@ class CourseSheetManager:
         )
         first_column = self.__find_column_in_response_by_sheet(first_column_name, group_sheet)
         second_column = self.__find_column_in_response_by_sheet(second_column_name, group_sheet)
-
         if not first_column or not second_column:
             raise ValueError(f'Columns {first_column_name} and {second_column_name} not found')
-
+        first_column_values = first_column.values
+        second_column_values = second_column.values
+        if len(first_column_values) > len(second_column_values):
+            second_column_values += max(0, len(first_column_values) - len(second_column_values)) * ['']
+        if len(first_column_values) < len(second_column_values):
+            first_column_values += max(0, len(second_column_values) - len(first_column_values)) * ['']
         col_ind = first_column.column_ind
         row_ind = second_column.values.index(row_value_in_second_column)
 
@@ -145,6 +149,7 @@ class CourseSheetManager:
             students_column = sheet_values[google_sheet_info.student_name_column]
             task_id_column = sheet_values[google_sheet_info.task_id_column]
             github_column = next(column for column in sheet_values if column[0] == 'GitHub')
+            github_column += max(0, len(students_column) - len(github_column)) * ['']
             if fullname in students_column:
                 student_index = students_column.index(fullname)
                 task_id = task_id_column[student_index]

@@ -1,9 +1,10 @@
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
-from aiogram.types import Message
+from aiogram.types import CallbackQuery, Message
 
 from api_clients import lab_grader_client
 from core import bot, dispatcher, States
+from core.keyboards import keyboard
 from core.models import AuthorizedStudent
 from core.utils import parse_unexpected_exception
 from lab_grader_client.exceptions import UnexpectedResponse
@@ -20,10 +21,10 @@ class LoginForm(StatesGroup):
     course_name = State()
 
 
-@dispatcher.message_handler(state=States.auth)
-async def start_login(message: Message) -> None:
-    await message.answer("Введите ваши данные")
-    await message.answer("Введите вашу фамилию:")
+@dispatcher.callback_query_handler(lambda x: x.data == 'start_registration', state=States.auth)
+async def start_login(callback_query: CallbackQuery) -> None:
+    await bot.answer_callback_query(callback_query.id)
+    await bot.send_message(callback_query.from_user.id, "Введите ваши данные\nВведите вашу фамилию:")
     await LoginForm.lastname.set()
 
 
@@ -83,7 +84,7 @@ async def process_course_name(message: Message, state: FSMContext) -> None:
         student = NonAuthorizedStudent(**data)
         try:
             student_response = await lab_grader_client.authorization_api.login(student)
-            await message.answer('Вы успешно зашли!')
+            await message.answer('Вы успешно зашли!', reply_markup=keyboard.home_menu)
 
             authorized_student = AuthorizedStudent(
                 fullname=student_response.fullname,
@@ -98,6 +99,5 @@ async def process_course_name(message: Message, state: FSMContext) -> None:
             await States.main_menu.set()
         except UnexpectedResponse as e:
             await message.answer('Произошла ошибка!')
-            await message.answer('\n'.join(parse_unexpected_exception(e)))
+            await message.answer('\n'.join(parse_unexpected_exception(e)), reply_markup=keyboard.auth_menu)
             await States.auth.set()
-            await start_login(message)
