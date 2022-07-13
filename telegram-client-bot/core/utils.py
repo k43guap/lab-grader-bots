@@ -1,11 +1,20 @@
+from json.decoder import JSONDecodeError
 from typing import Any
+
+
+def format_error(error: str) -> str:
+    return f"⚠ {error} ⚠"
 
 
 def parse_unexpected_exception(exception: Any) -> list[str]:
     fallback_message = ['Обратитесь к администратору системы']
     if not hasattr(exception, 'structured'):
         return fallback_message
-    exception_structure: dict = exception.structured()
+
+    try:
+        exception_structure: dict = exception.structured()
+    except JSONDecodeError:
+        return fallback_message
 
     if 'detail' not in exception_structure:
         return fallback_message
@@ -13,12 +22,12 @@ def parse_unexpected_exception(exception: Any) -> list[str]:
     detail = exception_structure['detail']
 
     if isinstance(detail, str):
-        return [detail]
+        return [format_error(detail)]
 
     if isinstance(detail, list):
         messages = []
         for exception in detail:
-            messages.append(exception['message'])
+            messages.append(format_error(exception['message']))
         return messages
 
     return fallback_message

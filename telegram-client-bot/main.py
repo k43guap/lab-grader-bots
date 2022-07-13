@@ -1,5 +1,5 @@
 from aiogram import Dispatcher
-from aiogram.types import Message
+from aiogram.types import Message, ReplyKeyboardRemove
 from aiogram.utils import executor
 
 from core import States
@@ -9,13 +9,13 @@ from states import dispatcher
 
 @dispatcher.message_handler(commands=['start'])
 async def process_start_command(message: Message) -> None:
-    await message.answer('Это бот для студентов ГУАП и нам нужны ваши данные', reply_markup=keyboard.auth_menu)
+    await message.answer('Это бот для студентов ГУАП', reply_markup=ReplyKeyboardRemove())
+    await message.answer('📝 Для начала нужно пройти регистрацию 📝', reply_markup=keyboard.auth_menu)
     await States.auth.set()
 
 
 @dispatcher.message_handler(state=None)
 async def set_default_state(message: Message) -> None:
-    await States.auth.set()
     await process_start_command(message)
 
 

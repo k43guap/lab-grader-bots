@@ -13,6 +13,6 @@ back_button = KeyboardButton('Назад')
 
 
 auth_menu = InlineKeyboardMarkup().add(register_button)
-home_menu = ReplyKeyboardMarkup(resize_keyboard=True).row(check_labs_button, profile_button)
+home_menu = ReplyKeyboardMarkup(resize_keyboard=True).add(check_labs_button).add(profile_button)
 labs_menu = ReplyKeyboardMarkup(resize_keyboard=True)
 profile_menu = ReplyKeyboardMarkup(resize_keyboard=True).add(back_button)
