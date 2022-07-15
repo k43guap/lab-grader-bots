@@ -1,6 +1,7 @@
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.types import CallbackQuery, Message, ReplyKeyboardRemove
+from aiogram.utils.callback_data import CallbackData
 
 from api_clients import lab_grader_client
 from core import bot, dispatcher, States
@@ -21,11 +22,26 @@ class LoginForm(StatesGroup):
     course_name = State()
 
 
-@dispatcher.callback_query_handler(lambda x: x.data == 'start_registration', state=States.auth)
+start_registration = CallbackData('start_registration')
+send_report_callback = CallbackData('send_report')
+
+
+@dispatcher.callback_query_handler(start_registration.filter(), state=States.auth)
 async def start_login(callback_query: CallbackQuery) -> None:
     await bot.answer_callback_query(callback_query.id)
     await bot.send_message(callback_query.from_user.id, "Введите вашу фамилию:", reply_markup=ReplyKeyboardRemove())
     await LoginForm.lastname.set()
+
+
+@dispatcher.callback_query_handler(send_report_callback.filter(), state=States.auth)
+async def send_report(callback_query: CallbackQuery) -> None:
+    await bot.answer_callback_query(callback_query.id)
+    await bot.send_message(callback_query.from_user.id, "Мы сообщили преподавателю о вашей проблеме")
+    await bot.edit_message_reply_markup(
+        chat_id=callback_query.from_user.id,
+        message_id=callback_query.message.message_id,
+        reply_markup=keyboard.auth_menu,
+    )
 
 
 @dispatcher.message_handler(state=LoginForm.lastname)
@@ -84,7 +100,7 @@ async def process_course_name(message: Message, state: FSMContext) -> None:
         student = NonAuthorizedStudent(**data)
         try:
             student_response = await lab_grader_client.authorization_api.login(student)
-            await message.answer('Вы успешно зашли!', reply_markup=keyboard.home_menu)
+            await message.answer('Вы успешно зашли!', reply_markup=keyboard.main_menu)
 
             authorized_student = AuthorizedStudent(
                 fullname=student_response.fullname,
@@ -94,11 +110,17 @@ async def process_course_name(message: Message, state: FSMContext) -> None:
             )
             auth_message = await message.answer(authorized_student.to_message())
             message_id = auth_message['message_id']
+            await bot.unpin_all_chat_messages(message.chat.id)
             await bot.pin_chat_message(message.chat.id, message_id)
 
             await States.main_menu.set()
+
         except UnexpectedResponse as e:
             await message.answer('Произошла ошибка!')
             exceptions = parse_unexpected_exception(e)
-            await message.answer('\n'.join(exceptions), reply_markup=keyboard.auth_menu)
+            await message.answer('\n'.join(exceptions))
+            await message.answer(
+                'Попробуйте ещё раз или сообщите преподавателю об ошибке',
+                reply_markup=keyboard.failed_auth_menu,
+            )
             await States.auth.set()
