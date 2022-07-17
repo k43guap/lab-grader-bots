@@ -4,7 +4,7 @@ from aiogram.types import (
     KeyboardButton,
     ReplyKeyboardMarkup,
 )
-
+from aiogram.utils.callback_data import CallbackData
 
 register_button = InlineKeyboardButton('Зарегистрироваться', callback_data='start_registration')
 retry_register_button = InlineKeyboardButton('Попробовать снова', callback_data='start_registration')
@@ -20,3 +20,6 @@ failed_auth_menu = InlineKeyboardMarkup().add(retry_register_button).add(report_
 main_menu = ReplyKeyboardMarkup(resize_keyboard=True).add(check_labs_button).add(profile_button)
 labs_menu = ReplyKeyboardMarkup(resize_keyboard=True)
 profile_menu = ReplyKeyboardMarkup(resize_keyboard=True).add(add_course_button).add(send_report).add(back_button)
+
+start_registration_callback = CallbackData('start_registration')
+send_report_callback = CallbackData('send_report')

@@ -25,12 +25,12 @@ async def get_laboratory_works(
 ) -> dict[str, LaboratoryWork]:
     course = None
     for course in await get_courses(settings):
-        if course_name in course.name:
+        if course_name in course.all_course_names:
             course = course
     if not course:
         raise CourseNotFound
 
-    if course_name not in course.all_course_names:
+    if course_name not in student.course_names:
         raise NoAccessToCourse
 
     repositories = await github_manager.get_repositories(

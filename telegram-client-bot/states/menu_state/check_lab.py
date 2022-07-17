@@ -5,7 +5,12 @@ from aiogram.types import Message
 from core import bot, dispatcher, States
 from core.keyboards import keyboard
 from core.models import AuthorizedStudent
-from states.menu_state.utils import generate_courses_markup, generate_labs_markup, get_pinned_message
+from states.menu_state.utils import (
+    generate_courses_markup,
+    generate_labs_markup,
+    get_labs,
+    get_pinned_message,
+)
 
 
 class MenuStates(StatesGroup):
@@ -17,12 +22,12 @@ class MenuStates(StatesGroup):
 @dispatcher.message_handler(content_types=['text'], text='Проверить лабу в курсе 🔍', state=States.main_menu)
 async def check_lab(message: Message) -> None:
     pinned_message = await get_pinned_message(message.chat.id)
-    courses = AuthorizedStudent.from_message(pinned_message['text']).courses
+    courses = AuthorizedStudent.from_message(pinned_message['text']).course_names
     await message.answer('Выберите курс 📚', reply_markup=generate_courses_markup(courses))
     await MenuStates.select_course.set()
 
 
-@dispatcher.message_handler(content_types=['text'], text='Назад ⬅', state=MenuStates.select_course)
+@dispatcher.message_handler(content_types=['text'], text='Назад ⬅', state='*')
 async def back_to_menu(message: Message) -> None:
     await message.answer('Главное меню 🎈', reply_markup=keyboard.main_menu)
     await States.main_menu.set()
@@ -32,14 +37,24 @@ async def back_to_menu(message: Message) -> None:
 async def select_course(message: Message, state: FSMContext) -> None:
     async with state.proxy() as data:
         data['selected_course'] = message.text
-    pinned_message = await get_pinned_message(message.chat.id)
+    selected_course = data['selected_course']
+    chat_id = message.chat.id
+    pinned_message = await get_pinned_message(chat_id)
     authorized_student = AuthorizedStudent.from_message(pinned_message['text'])
-    # fixme: get labs here
+    labs = await get_labs(selected_course, authorized_student)
     await MenuStates.select_lab.set()
-    # fixme: select_course(labs_list)
+    await select_lab(chat_id, labs)
 
 
 @dispatcher.message_handler(state=MenuStates.select_lab)
-async def select_lab(labs_list: list) -> None:
-    await bot.send_message('Выберите работу 🔍', reply_markup=generate_labs_markup(labs_list))
+async def select_lab(chat_id: int, labs: list) -> None:
+    await bot.send_message(chat_id, 'Выберите работу 🔍', reply_markup=generate_labs_markup(labs))
     await MenuStates.wait_for_check.set()
+
+
+@dispatcher.message_handler(state=MenuStates.wait_for_check)
+async def process_lastname(message: Message, state: FSMContext) -> None:
+    async with state.proxy() as data:
+        data['selected_lab'] = message.text
+    await message.answer(f"Проверяем работу №{data['selected_lab']}", reply_markup=keyboard.main_menu)
+    await States.main_menu.set()

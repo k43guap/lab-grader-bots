@@ -32,7 +32,7 @@ async def get_course(message: Message, state: FSMContext) -> None:
     chat = await bot.get_chat(chat_id)
     pinned_message = chat.pinned_message
     student_info = AuthorizedStudent.from_message(pinned_message['text'])
-    student_info.courses.append(data['course'])
+    student_info.course_names.append(data['course'])
 
     auth_message = await message.answer(student_info.to_message())
     message_id = auth_message['message_id']

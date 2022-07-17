@@ -1,7 +1,6 @@
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.types import CallbackQuery, Message, ReplyKeyboardRemove
-from aiogram.utils.callback_data import CallbackData
 
 from api_clients import lab_grader_client
 from core import bot, dispatcher, States
@@ -22,18 +21,14 @@ class LoginForm(StatesGroup):
     course_name = State()
 
 
-start_registration = CallbackData('start_registration')
-send_report_callback = CallbackData('send_report')
-
-
-@dispatcher.callback_query_handler(start_registration.filter(), state=States.auth)
+@dispatcher.callback_query_handler(keyboard.start_registration_callback.filter(), state=States.auth)
 async def start_login(callback_query: CallbackQuery) -> None:
     await bot.answer_callback_query(callback_query.id)
     await bot.send_message(callback_query.from_user.id, "Введите вашу фамилию:", reply_markup=ReplyKeyboardRemove())
     await LoginForm.lastname.set()
 
 
-@dispatcher.callback_query_handler(send_report_callback.filter(), state=States.auth)
+@dispatcher.callback_query_handler(keyboard.send_report_callback.filter(), state=States.auth)
 async def send_report(callback_query: CallbackQuery) -> None:
     await bot.answer_callback_query(callback_query.id)
     await bot.send_message(callback_query.from_user.id, "Мы сообщили преподавателю о вашей проблеме")
@@ -106,7 +101,8 @@ async def process_course_name(message: Message, state: FSMContext) -> None:
                 fullname=student_response.fullname,
                 github_username=student_response.github_username,
                 group=student_response.group,
-                courses=[data['course_name']],
+                course_names=[data['course_name']],
+                email=data['email'],
             )
             auth_message = await message.answer(authorized_student.to_message())
             message_id = auth_message['message_id']
