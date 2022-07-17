@@ -36,7 +36,7 @@ class Course(BaseModel):
     semester: str
     github_organization: GithubOrganization = Field(alias='github')
     google_sheet_info: GoogleSheetInfo = Field(default_factory=dict, alias='google')
-    laboratories: dict[str, LaboratoryWork] = Field(default_factory=dict, alias='labs')
+    laboratory_works: dict[str, LaboratoryWork] = Field(default_factory=dict, alias='labs')
 
     @property
     def all_course_names(self) -> list[str]:

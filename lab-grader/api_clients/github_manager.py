@@ -18,11 +18,11 @@ class GithubManager:
             except BadRequest:
                 return None
 
-    async def get_repositories(self, github_organization: GithubOrganization, prefix: str = '') -> list[str]:
+    async def get_repositories(self, github_organization: GithubOrganization, username: str) -> list[str]:
         repositories = []
         async with GithubSession(self.__token) as github:
             async for repository in github.getiter(f"/orgs/{github_organization.organization}/repos"):
-                if repository['name'].startswith(prefix):
+                if username in repository['name']:
                     repositories.append(repository['full_name'])
         return repositories
 
