@@ -1,16 +1,16 @@
-# lab_grader_client.AuthorizationApi
+# lab_grader_client.GraderApi
 
 All URIs are relative to *http://localhost*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
-[**login**](AuthorizationApi.md#login) | **POST** /api/authorization/login | Login
+[**get_laboratory_works**](GraderApi.md#get_laboratory_works) | **GET** /api/grader/laboratory_works | Get Laboratory Works
 
 
-# **login**
-> StudentFromSheet login(non_authorized_student)
+# **get_laboratory_works**
+> dict(str, LaboratoryWork) get_laboratory_works(course_name, authorized_student)
 
-Login
+Get Laboratory Works
 
 ### Example
 
@@ -22,26 +22,28 @@ from lab_grader_client.rest import ApiException
 from pprint import pprint
 
 # Create an instance of the API class
-api_instance = lab_grader_client.AuthorizationApi()
-non_authorized_student = lab_grader_client.NonAuthorizedStudent() # NonAuthorizedStudent | 
+api_instance = lab_grader_client.GraderApi()
+course_name = 'course_name_example' # str | 
+authorized_student = lab_grader_client.AuthorizedStudent() # AuthorizedStudent | 
 
 try:
-    # Login
-    api_response = api_instance.login(non_authorized_student)
+    # Get Laboratory Works
+    api_response = api_instance.get_laboratory_works(course_name, authorized_student)
     pprint(api_response)
 except ApiException as e:
-    print("Exception when calling AuthorizationApi->login: %s\n" % e)
+    print("Exception when calling GraderApi->get_laboratory_works: %s\n" % e)
 ```
 
 ### Parameters
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **non_authorized_student** | [**NonAuthorizedStudent**](NonAuthorizedStudent.md)|  | 
+ **course_name** | **str**|  | 
+ **authorized_student** | [**AuthorizedStudent**](AuthorizedStudent.md)|  | 
 
 ### Return type
 
-[**StudentFromSheet**](StudentFromSheet.md)
+[**dict(str, LaboratoryWork)**](LaboratoryWork.md)
 
 ### Authorization
 
@@ -55,7 +57,7 @@ No authorization required
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-**200** | Student successfully logged in |  -  |
+**200** | List of labs for which repositories have been created |  -  |
 **422** | Validation Error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)

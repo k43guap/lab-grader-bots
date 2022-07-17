@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 
 from api_clients.protocols import CourseSheetManagerProtocol, GithubManagerProtocol
 from apps.authorization.exceptions import StudentNotFound
-from apps.authorization.models import NonAuthorizedStudent, Student
+from apps.authorization.models import NonAuthorizedStudent, StudentFromSheet
 from apps.authorization.validation import StudentValidator
 from apps.grader.utils import get_courses
 from config import get_settings, Settings
@@ -12,7 +12,7 @@ router = APIRouter()
 
 @router.post(
     "/login",
-    response_model=Student,
+    response_model=StudentFromSheet,
     status_code=200,
     response_description="Student successfully logged in",
     operation_id="login",
@@ -22,7 +22,7 @@ async def login(
         github_manager: GithubManagerProtocol = Depends(),
         course_sheet_manager: CourseSheetManagerProtocol = Depends(),
         settings: Settings = Depends(get_settings),
-) -> Student:
+) -> StudentFromSheet:
     for course in await get_courses(settings):
         student_from_sheet = await course_sheet_manager.find_student(
             non_authorized_student.fullname,
