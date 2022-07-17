@@ -6,7 +6,7 @@ from typing import Optional
 from aiogoogle.excs import HTTPError
 
 from api_clients.google.google_sheets_client import GoogleSheetClient
-from apps.authorization.models import Student
+from apps.authorization.models import StudentFromSheet
 from apps.grader.models import GoogleSheetInfo, LaboratoryWork
 from config import Settings
 
@@ -133,7 +133,12 @@ class CourseSheetManager:
             string = chr(65 + remainder) + string
         return string
 
-    async def find_student(self, fullname: str, group: str, google_sheet_info: GoogleSheetInfo) -> Optional[Student]:
+    async def find_student(
+            self,
+            fullname: str,
+            group: str,
+            google_sheet_info: GoogleSheetInfo,
+    ) -> Optional[StudentFromSheet]:
         try:
             group_sheets = await self._google_sheets_client.get_sheets_values_by_column(
                 google_sheet_info.spreadsheet_id,
@@ -158,7 +163,12 @@ class CourseSheetManager:
                 github_username = github_column[student_index]
                 if not github_username:
                     github_username = None
-                return Student(variant_number=task_id, fullname=fullname, group=group, github_username=github_username)
+                return StudentFromSheet(
+                    variant_number=task_id,
+                    fullname=fullname,
+                    group=group,
+                    github_username=github_username,
+                )
 
         return None
 
@@ -176,7 +186,7 @@ class CourseSheetManager:
 
     async def update_github_username(
             self,
-            student: Student,
+            student: StudentFromSheet,
             new_github_username: str,
             spreadsheet_id: str,
             settings: Settings,

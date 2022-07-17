@@ -14,18 +14,20 @@ class _AuthorizationApi:
     def __init__(self, api_client: "ApiClient"):
         self.api_client = api_client
 
-    def _build_for_login(self, non_authorized_student: m.NonAuthorizedStudent) -> Awaitable[m.Student]:
+    def _build_for_login(self, non_authorized_student: m.NonAuthorizedStudent) -> Awaitable[m.StudentFromSheet]:
         body = jsonable_encoder(non_authorized_student)
 
-        return self.api_client.request(type_=m.Student, method="POST", url="/api/authorization/login", json=body)
+        return self.api_client.request(
+            type_=m.StudentFromSheet, method="POST", url="/api/authorization/login", json=body
+        )
 
 
 class AsyncAuthorizationApi(_AuthorizationApi):
-    async def login(self, non_authorized_student: m.NonAuthorizedStudent) -> m.Student:
+    async def login(self, non_authorized_student: m.NonAuthorizedStudent) -> m.StudentFromSheet:
         return await self._build_for_login(non_authorized_student=non_authorized_student)
 
 
 class SyncAuthorizationApi(_AuthorizationApi):
-    def login(self, non_authorized_student: m.NonAuthorizedStudent) -> m.Student:
+    def login(self, non_authorized_student: m.NonAuthorizedStudent) -> m.StudentFromSheet:
         coroutine = self._build_for_login(non_authorized_student=non_authorized_student)
         return get_event_loop().run_until_complete(coroutine)

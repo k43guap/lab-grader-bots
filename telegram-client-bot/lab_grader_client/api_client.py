@@ -2,9 +2,10 @@ from asyncio import get_event_loop
 from typing import Any, Awaitable, Callable, Dict, Generic, Type, TypeVar, overload
 
 from httpx import AsyncClient, Request, Response
-from pydantic import parse_obj_as, ValidationError
+from pydantic import ValidationError, parse_obj_as
 
 from lab_grader_client.api.authorization_api import AsyncAuthorizationApi, SyncAuthorizationApi
+from lab_grader_client.api.grader_api import AsyncGraderApi, SyncGraderApi
 from lab_grader_client.exceptions import ResponseHandlingException, UnexpectedResponse
 
 ClientT = TypeVar("ClientT", bound="ApiClient")
@@ -15,6 +16,7 @@ class AsyncApis(Generic[ClientT]):
         self.client = client
 
         self.authorization_api = AsyncAuthorizationApi(self.client)
+        self.grader_api = AsyncGraderApi(self.client)
 
 
 class SyncApis(Generic[ClientT]):
@@ -22,6 +24,7 @@ class SyncApis(Generic[ClientT]):
         self.client = client
 
         self.authorization_api = SyncAuthorizationApi(self.client)
+        self.grader_api = SyncGraderApi(self.client)
 
 
 T = TypeVar("T")
@@ -82,7 +85,7 @@ class ApiClient:
     async def send_inner(self, request: Request) -> Response:
         try:
             response = await self._async_client.send(request)
-        except Exception as e:  # noqa B902
+        except Exception as e:
             raise ResponseHandlingException(e)
         return response
 

@@ -1,6 +1,6 @@
 from api_clients.protocols import CourseSheetManagerProtocol, GithubManagerProtocol
 from apps.authorization.exceptions import ValidationException
-from apps.authorization.models import NonAuthorizedStudent, Student
+from apps.authorization.models import NonAuthorizedStudent, StudentFromSheet
 from apps.grader.models import Course
 from config import Settings
 
@@ -9,7 +9,7 @@ class StudentValidator:
     def __init__(
             self,
             non_authorized_student: NonAuthorizedStudent,
-            student_from_sheet: Student,
+            student_from_sheet: StudentFromSheet,
             github_manager: GithubManagerProtocol,
             course_sheet_manager: CourseSheetManagerProtocol,
             course: Course,
