@@ -1,3 +1,5 @@
+import logging
+
 from aiogram import Bot
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.contrib.middlewares.logging import LoggingMiddleware
@@ -20,3 +22,4 @@ class States(StatesGroup):
 bot = Bot(token=get_settings().API_TOKEN)
 dispatcher = Dispatcher(bot, storage=MemoryStorage())
 dispatcher.middleware.setup(LoggingMiddleware())
+logging.basicConfig(level=logging.INFO)

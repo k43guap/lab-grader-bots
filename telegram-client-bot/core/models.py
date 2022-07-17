@@ -1,11 +1,7 @@
-from pydantic import BaseModel, Field
+from lab_grader_client.models import AuthorizedStudent as AuthorizedStudentModel
 
 
-class AuthorizedStudent(BaseModel):
-    fullname: str
-    group: str
-    github_username: str
-    courses: list[str] = Field(default_factory=list)
+class AuthorizedStudent(AuthorizedStudentModel):
 
     @classmethod
     def from_message(cls, message: str) -> 'AuthorizedStudent':
@@ -14,7 +10,8 @@ class AuthorizedStudent(BaseModel):
             fullname=lines[0].split(': ')[1],
             group=lines[1].split(': ')[1],
             github_username=lines[2].split(': ')[1],
-            courses=lines[3].split(': ')[1].split(', '),
+            course_names=lines[3].split(': ')[1].split(', '),
+            email=lines[4].split(': ')[1],
         )
 
     def to_message(self) -> str:
@@ -22,4 +19,5 @@ class AuthorizedStudent(BaseModel):
                f"Ф.И.О.: {self.fullname}\n" \
                f"Группа: {self.group}\n" \
                f"GitHub: {self.github_username}\n" \
-               f"Курсы: {', '.join(self.courses)}"
+               f"Курсы: {', '.join(self.course_names)}\n" \
+               f"Почта: {self.email}"
