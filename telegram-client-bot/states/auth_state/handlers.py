@@ -3,9 +3,10 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.types import CallbackQuery, Message, ReplyKeyboardRemove
 
 from api_clients import lab_grader_client
-from core import bot, dispatcher, States
+from core import bot, dispatcher
 from core.keyboards import keyboard
 from core.models import AuthorizedStudent
+from core.states import States
 from core.utils import parse_unexpected_exception
 from lab_grader_client.exceptions import UnexpectedResponse
 from lab_grader_client.models import NonAuthorizedStudent
@@ -19,6 +20,9 @@ class LoginForm(StatesGroup):
     github_username = State()
     email = State()
     course_name = State()
+
+    def __str__(self) -> str:
+        return 'LoginForm'
 
 
 @dispatcher.callback_query_handler(keyboard.start_registration_callback.filter(), state=States.auth)
@@ -106,11 +110,12 @@ async def process_course_name(message: Message, state: FSMContext) -> None:
             )
             auth_message = await message.answer(authorized_student.to_message())
             message_id = auth_message['message_id']
-            await bot.unpin_all_chat_messages(message.chat.id)
+            try:
+                await bot.unpin_all_chat_messages(message.chat.id)
+            except:  # noqa
+                pass
             await bot.pin_chat_message(message.chat.id, message_id)
-
             await States.main_menu.set()
-
         except UnexpectedResponse as e:
             await message.answer('Произошла ошибка!')
             exceptions = parse_unexpected_exception(e)

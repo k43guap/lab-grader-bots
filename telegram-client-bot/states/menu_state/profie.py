@@ -1,9 +1,10 @@
 from aiogram.dispatcher import FSMContext
 from aiogram.types import Message
 
-from core import bot, dispatcher, States
+from core import bot, dispatcher
 from core.keyboards import keyboard
 from core.models import AuthorizedStudent
+from core.states import States
 
 
 @dispatcher.message_handler(content_types=['text'], text='Профиль 🚀', state=States.main_menu)

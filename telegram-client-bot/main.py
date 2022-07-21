@@ -1,22 +1,19 @@
+import logging
+
 from aiogram import Dispatcher
-from aiogram.types import Message, ReplyKeyboardRemove
+from aiogram.contrib.middlewares.logging import LoggingMiddleware
+from aiogram.types import Message
 from aiogram.utils import executor
 
-from core import States
-from core.keyboards import keyboard
+from core.middlewares import AuthMiddleware
 from states import dispatcher
 
-
-@dispatcher.message_handler(commands=['start'])
-async def process_start_command(message: Message) -> None:
-    await message.answer('Это бот для студентов ГУАП', reply_markup=ReplyKeyboardRemove())
-    await message.answer('📝 Для начала нужно пройти регистрацию 📝', reply_markup=keyboard.auth_menu)
-    await States.auth.set()
+logging.basicConfig(level=logging.INFO)
 
 
 @dispatcher.message_handler(state=None)
 async def set_default_state(message: Message) -> None:
-    await process_start_command(message)
+    pass
 
 
 async def shutdown(dp: Dispatcher) -> None:
@@ -25,4 +22,6 @@ async def shutdown(dp: Dispatcher) -> None:
 
 
 if __name__ == '__main__':
+    dispatcher.middleware.setup(LoggingMiddleware())
+    dispatcher.middleware.setup(AuthMiddleware())
     executor.start_polling(dispatcher, on_shutdown=shutdown)
