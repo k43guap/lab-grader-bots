@@ -2,14 +2,14 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.types import Message
 
-from core import bot, dispatcher, States
+from core import bot, dispatcher
 from core.keyboards import keyboard
 from core.models import AuthorizedStudent
+from core.states import States
 from states.menu_state.utils import (
     generate_courses_markup,
     generate_labs_markup,
     get_labs,
-    get_pinned_message,
 )
 
 
@@ -20,9 +20,8 @@ class MenuStates(StatesGroup):
 
 
 @dispatcher.message_handler(content_types=['text'], text='Проверить лабу в курсе 🔍', state=States.main_menu)
-async def check_lab(message: Message) -> None:
-    pinned_message = await get_pinned_message(message.chat.id)
-    courses = AuthorizedStudent.from_message(pinned_message['text']).course_names
+async def check_lab(message: Message, student: AuthorizedStudent) -> None:
+    courses = student.course_names
     await message.answer('Выберите курс 📚', reply_markup=generate_courses_markup(courses))
     await MenuStates.select_course.set()
 
@@ -34,14 +33,12 @@ async def back_to_menu(message: Message) -> None:
 
 
 @dispatcher.message_handler(state=MenuStates.select_course)
-async def select_course(message: Message, state: FSMContext) -> None:
+async def select_course(message: Message, state: FSMContext, student: AuthorizedStudent) -> None:
     async with state.proxy() as data:
         data['selected_course'] = message.text
     selected_course = data['selected_course']
     chat_id = message.chat.id
-    pinned_message = await get_pinned_message(chat_id)
-    authorized_student = AuthorizedStudent.from_message(pinned_message['text'])
-    labs = await get_labs(selected_course, authorized_student)
+    labs = await get_labs(selected_course, student)
     await MenuStates.select_lab.set()
     await select_lab(chat_id, labs)
 
