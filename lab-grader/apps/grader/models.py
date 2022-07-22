@@ -53,3 +53,7 @@ class Course(BaseModel):
 class RateLabData(BaseModel):
     course_name: str
     laboratory_work: str
+
+
+class RateResponse(BaseModel):
+    status: str

@@ -8,7 +8,7 @@ Method | HTTP request | Description
 
 
 # **login**
-> StudentFromSheet login(non_authorized_student)
+> StudentFromSheet login(client_bot_id, non_authorized_student)
 
 Login
 
@@ -23,11 +23,12 @@ from pprint import pprint
 
 # Create an instance of the API class
 api_instance = lab_grader_client.AuthorizationApi()
+client_bot_id = 'client_bot_id_example' # str | 
 non_authorized_student = lab_grader_client.NonAuthorizedStudent() # NonAuthorizedStudent | 
 
 try:
     # Login
-    api_response = api_instance.login(non_authorized_student)
+    api_response = api_instance.login(client_bot_id, non_authorized_student)
     pprint(api_response)
 except ApiException as e:
     print("Exception when calling AuthorizationApi->login: %s\n" % e)
@@ -37,6 +38,7 @@ except ApiException as e:
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
+ **client_bot_id** | **str**|  | 
  **non_authorized_student** | [**NonAuthorizedStudent**](NonAuthorizedStudent.md)|  | 
 
 ### Return type

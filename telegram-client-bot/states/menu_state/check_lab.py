@@ -2,10 +2,13 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.types import Message
 
+from api_clients import lab_grader_client
 from core import bot, dispatcher
 from core.keyboards import keyboard
 from core.models import AuthorizedStudent
 from core.states import States
+from core.utils import parse_unexpected_exception
+from lab_grader_client.models import BodyRate
 from states.menu_state.utils import (
     generate_courses_markup,
     generate_labs_markup,
@@ -38,7 +41,7 @@ async def select_course(message: Message, state: FSMContext, student: Authorized
         data['selected_course'] = message.text
     selected_course = data['selected_course']
     chat_id = message.chat.id
-    labs = await get_labs(selected_course, student)
+    labs = await get_labs(message.chat.id, selected_course, student)
     await MenuStates.select_lab.set()
     await select_lab(chat_id, labs)
 
@@ -50,8 +53,29 @@ async def select_lab(chat_id: int, labs: list) -> None:
 
 
 @dispatcher.message_handler(state=MenuStates.wait_for_check)
-async def process_lastname(message: Message, state: FSMContext) -> None:
+async def process_lastname(message: Message, state: FSMContext, student: AuthorizedStudent) -> None:
     async with state.proxy() as data:
         data['selected_lab'] = message.text
-    await message.answer(f"Проверяем работу №{data['selected_lab']}", reply_markup=keyboard.main_menu)
+    await message.answer("Проверяем...")
+    try:
+        BodyRate.update_forward_refs()
+        await lab_grader_client.grader_api.rate(
+            message.chat.id,
+            body_rate=BodyRate(**{
+                "lab_data": {
+                    "course_name": data['selected_course'],
+                    "laboratory_work": data['selected_lab'],
+                },
+                "student": student,
+            }),
+        )
+    except Exception as e:  # noqa
+        await message.answer('Произошла ошибка!')
+        exceptions = parse_unexpected_exception(e)
+        await message.answer('\n'.join(exceptions), reply_markup=keyboard.main_menu)
+    else:
+        await message.answer(
+            f"Работа {data['selected_lab']} проверена",
+            reply_markup=keyboard.main_menu,
+        )
     await States.main_menu.set()

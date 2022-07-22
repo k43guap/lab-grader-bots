@@ -98,7 +98,7 @@ async def process_course_name(message: Message, state: FSMContext) -> None:
         data['fullname'] = f"{data['lastname']} {data['firstname']} {data['patronymic']}"
         student = NonAuthorizedStudent(**data)
         try:
-            student_response = await lab_grader_client.authorization_api.login(student)
+            student_response = await lab_grader_client.authorization_api.login(str(message.chat.id), student)
             await message.answer('Вы успешно зашли!', reply_markup=keyboard.main_menu)
 
             authorized_student = AuthorizedStudent(

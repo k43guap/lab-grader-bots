@@ -6,7 +6,7 @@ Name | Type | Description | Notes
 **github_prefix** | **str** |  | 
 **short_name** | **str** |  | 
 **taskid_max** | **int** |  | 
-**penalty_max** | **int** |  | 
+**penalty_max** | **int** |  | [optional] [default to 0]
 **taskid_shift** | **int** |  | [optional] [default to 0]
 **ignore_task_id** | **bool** |  | [optional] [default to False]
 **ci** | [**Any**](AnyOfarrayobject.md) |  | [optional] 

@@ -36,5 +36,13 @@ async def get_pinned_message(chat_id: int) -> Message:
     return chat.pinned_message
 
 
-async def get_labs(course: str, authorized_student: AuthorizedStudent) -> list:
-    return list((await lab_grader_client.grader_api.get_laboratory_works(course, authorized_student)).keys())
+async def get_labs(chat_id: int, course: str, authorized_student: AuthorizedStudent) -> list:
+    labs = await lab_grader_client.grader_api.get_laboratory_works(
+        str(chat_id),
+        course,
+        authorized_student,
+    )
+    lab_names = []
+    for lab in labs.values():
+        lab_names.append(lab.short_name)
+    return lab_names
