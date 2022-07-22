@@ -9,7 +9,10 @@ from states import dispatcher
 
 @dispatcher.message_handler(commands=['start'])
 async def process_start_command(message: Message) -> None:
-    await message.answer('Это бот для студентов ГУАП', reply_markup=ReplyKeyboardRemove())
+    await message.answer(
+        'Это бот для преподавателей ГУАП для контроля корректной регистрации студентов в suai-client-bot',
+        reply_markup=ReplyKeyboardRemove()
+    )
     await message.answer('📝 Для начала нужно пройти регистрацию 📝', reply_markup=keyboard.auth_menu)
     await States.auth.set()
 

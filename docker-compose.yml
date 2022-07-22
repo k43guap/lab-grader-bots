@@ -16,18 +16,44 @@ services:
     networks:
       service-network:
 
-  telegram-client-bot:
-    container_name: telegram-client-bot
-    build: ./telegram-client-bot
+#  telegram-client-bot:
+#    container_name: telegram-client-bot
+#    build: ./telegram-client-bot
+#    command: python main.py
+#    volumes:
+#      - ./telegram-client-bot:/app
+#    working_dir: /app
+#    restart: on-failure
+#    env_file:
+#      - telegram-client-bot/.env
+#    networks:
+#      service-network:
+
+  telegram-admin-bot:
+    container_name: telegram-admin-bot
+    build: ./telegram-admin-bot
     command: python main.py
     volumes:
-      - ./telegram-client-bot:/app
+      - ./telegram-admin-bot:/app
     working_dir: /app
     restart: on-failure
     env_file:
-      - telegram-client-bot/.env
+      - telegram-admin-bot/.env
     networks:
-      service-network:
+     service-network:
+
+#  discord-client-bot:
+#    container_name: discord-client-bot
+#    build: ./discord-client-bot
+#    command: python main.py
+#    volumes:
+#      - ./discord-client-bot:/app
+#    working_dir: /app
+#    restart: on-failure
+#    env_file:
+#      - discord-client-bot/.env
+#    networks:
+#      service-network:
 
 networks:
   service-network:
