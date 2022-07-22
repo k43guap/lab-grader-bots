@@ -31,8 +31,8 @@ class GithubBuildLogSettings(BaseSettings):
 
 class Settings(GoogleSettings, GithubSettings, GithubBuildLogSettings):
     COURSES_CONFIG_DIRECTORY: str = get_env("COURSES_CONFIG_DIRECTORY", default='courses')
-    RATE_LIMIT = "1/5min"
     DEFAULT_CI_JOBS: list = ["Autograding", "test", "build"]
+    WRONG_TASK_ID_MARK: str = "?! Wrong TASKID!"
 
 
 @lru_cache

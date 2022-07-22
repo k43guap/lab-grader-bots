@@ -11,3 +11,18 @@ class CourseNotFound(CustomHTTPException):
 class NoAccessToCourse(CustomHTTPException):
     status_code = HTTP_403_FORBIDDEN
     detail = 'Нет доступа к курсу'
+
+
+class LaboratoryWorkNotFound(CustomHTTPException):
+    status_code = HTTP_404_NOT_FOUND
+    detail = 'Лабораторная работа не найдена'
+
+
+class SuccessfulBuildNotFound(CustomHTTPException):
+    status_code = HTTP_404_NOT_FOUND
+    detail = 'Лабораторная работа еще не сдана'
+
+
+class GithubLogNotFound(CustomHTTPException):
+    status_code = HTTP_404_NOT_FOUND
+    detail = 'Логи тестов не найдены'
