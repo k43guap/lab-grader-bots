@@ -1,8 +1,7 @@
 from dateutil.parser import isoparse
 from fastapi import APIRouter, Depends
 from starlette.requests import Request
-from starlette.responses import Response
-from starlette.status import HTTP_204_NO_CONTENT
+from starlette.status import HTTP_200_OK
 
 from api_clients.protocols import CourseSheetManagerProtocol, GithubManagerProtocol
 from apps.authorization.exceptions import StudentNotFound
@@ -14,7 +13,7 @@ from apps.grader.exceptions import (
     NoAccessToCourse,
     SuccessfulBuildNotFound,
 )
-from apps.grader.models import LaboratoryWork, RateLabData
+from apps.grader.models import LaboratoryWork, RateLabData, RateResponse
 from apps.grader.services.github_log_parser import GithubLogParser
 from apps.grader.services.lab_grader import get_status
 from apps.grader.utils import find_course_by_name
@@ -27,7 +26,7 @@ router = APIRouter()
 @router.get(
     "/laboratory_works",
     response_model=dict[str, LaboratoryWork],
-    status_code=200,
+    status_code=HTTP_200_OK,
     response_description="List of labs for which repositories have been created",
     operation_id="get_laboratory_works",
 )
@@ -62,8 +61,8 @@ async def get_laboratory_works(
 
 @router.post(
     "/rate",
-    response_model=None,
-    status_code=HTTP_204_NO_CONTENT,
+    response_model=RateResponse,
+    status_code=HTTP_200_OK,
     operation_id="rate",
 )
 @limiter.limit("1/5minute")
@@ -75,7 +74,7 @@ async def rate(
     settings: Settings = Depends(get_settings),
     github_manager: GithubManagerProtocol = Depends(),
     course_sheet_manager: CourseSheetManagerProtocol = Depends(),
-) -> Response:
+) -> RateResponse:
     course = await find_course_by_name(lab_data.course_name, settings)
     if not course:
         raise CourseNotFound
@@ -140,4 +139,4 @@ async def rate(
         settings=settings,
     )
 
-    return Response(status_code=HTTP_204_NO_CONTENT)
+    return RateResponse(status=lab_status)

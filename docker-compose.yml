@@ -19,7 +19,22 @@ services:
   telegram-client-bot:
     container_name: telegram-client-bot
     build: ./telegram-client-bot
-    command: python main.py
+    command: uvicorn main:app --host 0.0.0.0 --port 8001 --reload
+    volumes:
+      - ./telegram-client-bot:/app
+    ports:
+      - 8001:8001
+    working_dir: /app
+    restart: on-failure
+    env_file:
+      - telegram-client-bot/.env
+    networks:
+      service-network:
+
+  telegram-client-bot-api:
+    container_name: telegram-client-bot-api
+    build: ./telegram-client-bot
+    command: python bot.py
     volumes:
       - ./telegram-client-bot:/app
     working_dir: /app

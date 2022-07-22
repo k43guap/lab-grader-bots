@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends
 from starlette.requests import Request
+from starlette.status import HTTP_200_OK
 
 from api_clients.protocols import CourseSheetManagerProtocol, GithubManagerProtocol
 from apps.authorization.exceptions import StudentNotFound
@@ -15,7 +16,7 @@ router = APIRouter()
 @router.post(
     "/login",
     response_model=StudentFromSheet,
-    status_code=200,
+    status_code=HTTP_200_OK,
     response_description="Student successfully logged in",
     operation_id="login",
 )

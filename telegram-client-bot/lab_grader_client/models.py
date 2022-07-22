@@ -12,6 +12,11 @@ class AuthorizedStudent(BaseModel):
     github_username: "str" = Field(..., alias="github_username")
 
 
+class BodyRate(BaseModel):
+    lab_data: "RateLabData" = Field(..., alias="lab_data")
+    student: "AuthorizedStudent" = Field(..., alias="student")
+
+
 class HTTPValidationError(BaseModel):
     detail: "Optional[List[ValidationError]]" = Field(None, alias="detail")
 
@@ -20,7 +25,7 @@ class LaboratoryWork(BaseModel):
     github_prefix: "str" = Field(..., alias="github-prefix")
     short_name: "str" = Field(..., alias="short-name")
     taskid_max: "int" = Field(..., alias="taskid-max")
-    penalty_max: "int" = Field(..., alias="penalty-max")
+    penalty_max: "Optional[int]" = Field(None, alias="penalty-max")
     taskid_shift: "Optional[int]" = Field(None, alias="taskid-shift")
     ignore_task_id: "Optional[bool]" = Field(None, alias="ignore-task-id")
     ci: "Optional[Any]" = Field(None, alias="ci")
@@ -32,6 +37,15 @@ class NonAuthorizedStudent(BaseModel):
     email: "str" = Field(..., alias="email")
     course_name: "str" = Field(..., alias="course_name")
     github_username: "str" = Field(..., alias="github_username")
+
+
+class RateLabData(BaseModel):
+    course_name: "str" = Field(..., alias="course_name")
+    laboratory_work: "str" = Field(..., alias="laboratory_work")
+
+
+class RateResponse(BaseModel):
+    status: "str" = Field(..., alias="status")
 
 
 class StudentFromSheet(BaseModel):

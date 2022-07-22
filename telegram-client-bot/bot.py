@@ -16,12 +16,16 @@ async def set_default_state(message: Message) -> None:
     pass
 
 
-async def shutdown(dp: Dispatcher) -> None:
+async def bot_shutdown(dp: Dispatcher) -> None:
     await dp.storage.close()
     await dp.storage.wait_closed()
 
 
-if __name__ == '__main__':
+def bot_configure() -> None:
     dispatcher.middleware.setup(LoggingMiddleware())
     dispatcher.middleware.setup(AuthMiddleware())
-    executor.start_polling(dispatcher, on_shutdown=shutdown)
+    executor.start_polling(dispatcher, on_shutdown=bot_shutdown)
+
+
+if __name__ == '__main__':
+    bot_configure()
