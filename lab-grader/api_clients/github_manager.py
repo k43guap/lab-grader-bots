@@ -3,7 +3,6 @@ from typing import Optional
 from gidgethub import BadRequest, GitHubBroken
 
 from api_clients.github.github_session import GithubSession
-from apps.grader.models import GithubOrganization
 from config import Settings
 
 
@@ -18,32 +17,35 @@ class GithubManager:
             except BadRequest:
                 return None
 
-    async def get_repositories(self, github_organization: GithubOrganization, username: str) -> list[str]:
+    async def get_repositories(self, organization: str, username: str) -> list[str]:
         repositories = []
         async with GithubSession(self.__token) as github:
-            async for repository in github.getiter(f"/orgs/{github_organization.organization}/repos"):
+            async for repository in github.getiter(f"/orgs/{organization}/repos"):
                 if username in repository['name']:
                     repositories.append(repository['full_name'])
         return repositories
 
-    async def get_default_branch_name(self, repository_name: str) -> str:
+    async def get_default_branch_name(self, organisation: str, repository_name: str) -> str:
         async with GithubSession(self.__token) as github:
-            repository_info = await github.getitem(f"/repos/{repository_name}")
+            repository_info = await github.getitem(f"/repos/{organisation}/{repository_name}")
         return repository_info['default_branch']
 
-    async def get_builds(self, repository_name: str) -> list[dict]:
-        default_branch = await self.get_default_branch_name(repository_name)
+    async def get_builds(self, organisation: str, repository_name: str) -> list[dict]:
+        default_branch = await self.get_default_branch_name(organisation, repository_name)
         async with GithubSession(self.__token) as github:
-            builds = await github.getitem(f'/repos/{repository_name}/commits/{default_branch}/check-runs')
+            builds = await github.getitem(
+                f'/repos/{organisation}/{repository_name}/commits/{default_branch}/check-runs',
+            )
         return builds['check_runs']
 
     async def get_successful_build(
             self,
+            organisation: str,
             repository_name: str,
             job_names: list[str],
             all_successful: bool = False,
     ) -> Optional[dict]:
-        builds = await self.get_builds(repository_name)
+        builds = await self.get_builds(organisation, repository_name)
         successful_builds = []
         for build in builds:
             for job_name in job_names:
@@ -54,13 +56,18 @@ class GithubManager:
         last_build = max(successful_builds, key=lambda build: build['completed_at'], default=None)
         return last_build
 
-    async def get_successful_build_log(self, repository_name: str, job_names: list[str]) -> Optional[str]:
-        build = await self.get_successful_build(repository_name, job_names)
+    async def get_successful_build_log(
+            self,
+            organisation: str,
+            repository_name: str,
+            job_names: list[str],
+    ) -> Optional[str]:
+        build = await self.get_successful_build(organisation, repository_name, job_names)
         if not build:
             return None
         async with GithubSession(self.__token) as github:
             try:
-                log = await github.getitem(f"/repos/{repository_name}/actions/jobs/{build['id']}/logs")
+                log = await github.getitem(f"/repos/{organisation}/{repository_name}/actions/jobs/{build['id']}/logs")
             except GitHubBroken:
                 return None  # fixme: error handling
         return log

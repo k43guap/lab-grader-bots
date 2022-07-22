@@ -4,6 +4,8 @@ from datetime import datetime
 from typing import Optional
 
 from aiogoogle.excs import HTTPError
+from dateutil.parser import parse
+from dateutil.tz import gettz
 
 from api_clients.google.google_sheets_client import GoogleSheetClient
 from apps.authorization.models import StudentFromSheet
@@ -152,12 +154,18 @@ class CourseSheetManager:
         for group_sheet in group_sheets:
             sheet_values = group_sheet['values']
             students_column = sheet_values[google_sheet_info.student_name_column]
-            task_id_column = sheet_values[google_sheet_info.task_id_column]
+            if google_sheet_info.task_id_column is not None:
+                task_id_column = sheet_values[google_sheet_info.task_id_column]
+            else:
+                task_id_column = []
             github_column = next(column for column in sheet_values if column[0] == 'GitHub')
             github_column += max(0, len(students_column) - len(github_column)) * ['']
             if fullname in students_column:
                 student_index = students_column.index(fullname)
-                task_id = task_id_column[student_index]
+                if task_id_column:
+                    task_id = task_id_column[student_index]
+                else:
+                    task_id = -1
                 if group_text := re.search(r"'(.+?)'", group_sheet['range']):
                     group = group_text.group(1)
                 github_username = github_column[student_index]
@@ -172,16 +180,29 @@ class CourseSheetManager:
 
         return None
 
-    async def get_deadline(self, group: str, laboratory_work: LaboratoryWork, spreadsheet_id: str) -> datetime:
+    async def get_deadline(
+            self,
+            group: str,
+            laboratory_work: LaboratoryWork,
+            spreadsheet_id: str,
+            timezone: str,
+    ) -> datetime:
         group_sheets = await self._google_sheets_client.get_sheets_values_by_column(
             spreadsheet_id,
             sheet_titles=[group],
         )
 
+        moscow_tz = {"MSK": gettz("Russia/Moscow")}
+
         sheet_columns = group_sheets['valueRanges'][0]['values']
         for column in sheet_columns:
             if laboratory_work.short_name in column:
-                return datetime.strptime(column[0], '%d.%m.%Y')
+                deadline = column[0]
+                if len(deadline.split('.')) == 2:
+                    deadline += f".{datetime.now().year}"
+                deadline += f" 23:59:59 {timezone}"
+                return parse(deadline, dayfirst=True, tzinfos=moscow_tz)
+
         raise ValueError(laboratory_work.short_name)  # this code is unreachable
 
     async def update_github_username(
@@ -200,11 +221,29 @@ class CourseSheetManager:
         )
         await self._google_sheets_client.update_cell(spreadsheet_id, cell.google_sheet_cell_id, new_github_username)
 
+    async def update_lab_status(
+            self,
+            status: str,
+            student: StudentFromSheet,
+            laboratory_work: LaboratoryWork,
+            spreadsheet_id: str,
+            settings: Settings,
+    ) -> None:
+        cell = await self._get_intersection_cell(
+            first_column_name=laboratory_work.short_name,
+            second_column_name=settings.STUDENT_FULLNAME_COLUMN,
+            row_value_in_second_column=student.fullname,
+            sheet_title=student.group,
+            spreadsheet_id=spreadsheet_id,
+        )
+        await self._google_sheets_client.update_cell(spreadsheet_id, cell.google_sheet_cell_id, status)
+
     async def get_github_usernames(self, spreadsheet_id: str, settings: Settings) -> list[str]:
         github_columns = await self._find_columns(settings.GITHUB_COLUMN, spreadsheet_id)
         if not github_columns:
             raise ValueError(f'Column {settings.GITHUB_COLUMN} not found')
         github_usernames = []
+
         for column in github_columns.values():
             for github_username in column.values:
                 if github_username == settings.GITHUB_COLUMN:

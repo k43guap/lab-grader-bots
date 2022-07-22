@@ -1,4 +1,5 @@
 import os
+from typing import Optional
 
 import aiofiles
 import yaml
@@ -16,3 +17,11 @@ async def get_courses(settings: Settings) -> list[Course]:
             courses.append(Course(**data['course']))
 
     return courses
+
+
+async def find_course_by_name(course_name: str, settings: Settings) -> Optional[Course]:
+    course = None
+    for course in await get_courses(settings):
+        if course_name in course.all_course_names:
+            course = course
+    return course

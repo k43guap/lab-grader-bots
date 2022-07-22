@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends
+from starlette.requests import Request
 
 from api_clients.protocols import CourseSheetManagerProtocol, GithubManagerProtocol
 from apps.authorization.exceptions import StudentNotFound
@@ -6,6 +7,7 @@ from apps.authorization.models import NonAuthorizedStudent, StudentFromSheet
 from apps.authorization.validation import StudentValidator
 from apps.grader.utils import get_courses
 from config import get_settings, Settings
+from limiter import limiter
 
 router = APIRouter()
 
@@ -17,11 +19,14 @@ router = APIRouter()
     response_description="Student successfully logged in",
     operation_id="login",
 )
+@limiter.limit("1/5minute")
 async def login(
-        non_authorized_student: NonAuthorizedStudent,
-        github_manager: GithubManagerProtocol = Depends(),
-        course_sheet_manager: CourseSheetManagerProtocol = Depends(),
-        settings: Settings = Depends(get_settings),
+    request: Request,
+    client_bot_id: str,
+    non_authorized_student: NonAuthorizedStudent,
+    github_manager: GithubManagerProtocol = Depends(),
+    course_sheet_manager: CourseSheetManagerProtocol = Depends(),
+    settings: Settings = Depends(get_settings),
 ) -> StudentFromSheet:
     for course in await get_courses(settings):
         student_from_sheet = await course_sheet_manager.find_student(
